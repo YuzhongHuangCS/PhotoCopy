@@ -40,11 +40,11 @@ void FormatDebugString(TCHAR* fmt, ...) {
 
 CString PIDtoProcessName(DWORD pid) {
 	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-	char name[256];
+	TCHAR name[256];
 	DWORD len = 255;
-	QueryFullProcessImageNameA(handle, 0, name, &len);
+	QueryFullProcessImageName(handle, 0, name, &len);
 	CloseHandle(handle);
-	char* exe = strrchr(name, '\\') + 1;
+	TCHAR* exe = _tcsrchr(name, '\\') + 1;
 
 	return CString(exe);
 }
@@ -186,10 +186,7 @@ HCURSOR CPhotoCopyDlg::OnQueryDragIcon() {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CPhotoCopyDlg::OnOk() {
-	DestroyWindow();
-}
-
 void CPhotoCopyDlg::OnCancel() {
+	UnregisterHotKey(m_hWnd, MY_HOTKEY_ID);
 	DestroyWindow();
 }

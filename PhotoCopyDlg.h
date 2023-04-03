@@ -30,7 +30,6 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
 	afx_msg HCURSOR OnQueryDragIcon();
-	void OnOk();
 	void OnCancel();
 	DECLARE_MESSAGE_MAP()
 
