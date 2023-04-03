@@ -46,4 +46,5 @@ private:
 	void LogCurrentWindow(HWND current);
 	HWND FindExplorer();
 
+	CString LOG;
 };

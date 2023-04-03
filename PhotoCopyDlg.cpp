@@ -38,10 +38,10 @@ void FormatDebugString(char* fmt, ...) {
 	char dbg_out[4096];
 	vsprintf_s(dbg_out, fmt, argp);
 	va_end(argp);
-	OutputDebugStringA(dbg_out);
+	OutputDebugString(dbg_out);
 }
 
-CStringA PIDtoProcessName(DWORD pid) {
+CString PIDtoProcessName(DWORD pid) {
 	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
 	char name[256];
 	DWORD len = 255;
@@ -49,7 +49,7 @@ CStringA PIDtoProcessName(DWORD pid) {
 	CloseHandle(handle);
 	char* exe = strrchr(name, '\\') + 1;
 
-	return CStringA(exe);
+	return CString(exe);
 }
 
 // CPhotoCopyDlg message handlers
@@ -64,7 +64,12 @@ BOOL CPhotoCopyDlg::OnInitDialog() {
 
 	// TODO: Add extra initialization here
 	bool status = RegisterHotKey(m_hWnd, MY_HOTKEY_ID, MOD_CONTROL, KEYS_RIGHT);
-	FormatDebugString("Hotkey Register %d\n", status);
+	// FormatDebugString("Hotkey Register status: %d\n", status);
+
+	CString str;
+	str.Format("Hotkey Register status: %d\r\n", status);
+	LOG += str;
+	SetDlgItemText(IDC_EDIT1, LOG);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -125,17 +130,22 @@ void CPhotoCopyDlg::SendHotKeys() {
 
 void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
 	char title[256];
-	::GetWindowTextA(current, (LPSTR) &title, 255);
+	::GetWindowText(current, (LPSTR) &title, 255);
 
 	DWORD pid = 0;
 	GetWindowThreadProcessId(current, &pid);
 
-	CStringA name = PIDtoProcessName(pid);
+	CString name = PIDtoProcessName(pid);
+	// FormatDebugString("Source: exe: %s, title: %s, pid: %d\n", (LPCSTR)name, title, pid);
 
-	FormatDebugString("Source: exe: %s, title: %s, pid: %d\n", (LPCSTR) name, title, pid);
+	CString str;
+	str.Format("Source: exe: %s, title: %s, pid: %d\r\n", (LPCSTR)name, title, pid);
+
+	LOG += str;
+	SetDlgItemText(IDC_EDIT1, LOG);
 }
 
-static const CStringA EXPLORER = CStringA("explorer.exe");
+static const CString EXPLORER = CString("explorer.exe");
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 	if (!::IsWindowVisible(hwnd) || ::GetWindowTextLength(hwnd) == 0) {
 		return TRUE;
@@ -144,13 +154,17 @@ BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 	DWORD pid = 0;
 	GetWindowThreadProcessId(hwnd, &pid);
 
-	CStringA name = PIDtoProcessName(pid);
+	CString name = PIDtoProcessName(pid);
 	if (name == EXPLORER) {
-		((HWND*) lParam)[0] = hwnd;
-
 		char title[256];
-		::GetWindowTextA(hwnd, (LPSTR) &title, 255);
-		FormatDebugString("Target: exe: %s, title: %s, pid: %d\n", (LPCSTR) name, title, pid);
+		::GetWindowText(hwnd, (LPSTR) &title, 255);
+		// FormatDebugString("Target: exe: %s, title: %s, pid: %d\n", (LPCSTR) name, title, pid);
+
+		CString str;
+		str.Format("Target: exe: %s, title: %s, pid: %d\r\n", (LPCSTR)name, title, pid);
+
+		((CString*) lParam)[0] += str;
+		((HWND*) lParam)[1] = hwnd;
 		return FALSE;
 	}
 
@@ -158,9 +172,15 @@ BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 }
 
 HWND CPhotoCopyDlg::FindExplorer() {
-	HWND ret[1];
+	HWND ret[2];
+
+	// Hack: sizeof(HWND) == sizeof(CString), [0] is CString, [1] is HWND
+	memcpy(ret, &LOG, sizeof(CString));
 	::EnumDesktopWindows(NULL, EnumCallback, (LPARAM) ret);
-	return ret[0];
+	memcpy(&LOG, ret, sizeof(CString));
+	SetDlgItemText(IDC_EDIT1, LOG);
+
+	return ret[1];
 }
 
 // The system calls this function to obtain the cursor to display while the user drags
