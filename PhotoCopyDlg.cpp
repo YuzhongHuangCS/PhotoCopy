@@ -32,11 +32,11 @@ BEGIN_MESSAGE_MAP(CPhotoCopyDlg, CDialogEx)
 	ON_WM_QUERYDRAGICON()
 END_MESSAGE_MAP()
 
-void FormatDebugString(char* fmt, ...) {
+void FormatDebugString(TCHAR* fmt, ...) {
 	va_list argp;
 	va_start(argp, fmt);
-	char dbg_out[4096];
-	vsprintf_s(dbg_out, fmt, argp);
+	TCHAR dbg_out[4096];
+	vswprintf_s(dbg_out, fmt, argp);
 	va_end(argp);
 	OutputDebugString(dbg_out);
 }
@@ -64,10 +64,10 @@ BOOL CPhotoCopyDlg::OnInitDialog() {
 
 	// TODO: Add extra initialization here
 	bool status = RegisterHotKey(m_hWnd, MY_HOTKEY_ID, MOD_CONTROL, KEYS_RIGHT);
-	// FormatDebugString("Hotkey Register status: %d\n", status);
+	// FormatDebugString(_T("Hotkey Register status: %d\n"), status);
 
 	CString str;
-	str.Format("Hotkey Register status: %d\r\n", status);
+	str.Format(_T("Hotkey Register status: %d\r\n"), status);
 	LOG += str;
 	SetDlgItemText(IDC_EDIT1, LOG);
 
@@ -129,23 +129,23 @@ void CPhotoCopyDlg::SendHotKeys() {
 }
 
 void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
-	char title[256];
-	::GetWindowText(current, (LPSTR) &title, 255);
+	TCHAR title[256];
+	::GetWindowText(current, (LPTSTR) &title, 255);
 
 	DWORD pid = 0;
 	GetWindowThreadProcessId(current, &pid);
 
 	CString name = PIDtoProcessName(pid);
-	// FormatDebugString("Source: exe: %s, title: %s, pid: %d\n", (LPCSTR)name, title, pid);
+	// FormatDebugString(_T("Source: exe: %s, title: %s, pid: %d\n"), (LPCTSTR) name, title, pid);
 
 	CString str;
-	str.Format("Source: exe: %s, title: %s, pid: %d\r\n", (LPCSTR)name, title, pid);
+	str.Format(_T("Source: exe: %s, title: %s, pid: %d\r\n"), (LPCTSTR) name, title, pid);
 
 	LOG += str;
 	SetDlgItemText(IDC_EDIT1, LOG);
 }
 
-static const CString EXPLORER = CString("explorer.exe");
+static const CString EXPLORER = CString(_T("explorer.exe"));
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 	if (!::IsWindowVisible(hwnd) || ::GetWindowTextLength(hwnd) == 0) {
 		return TRUE;
@@ -156,12 +156,12 @@ BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 
 	CString name = PIDtoProcessName(pid);
 	if (name == EXPLORER) {
-		char title[256];
-		::GetWindowText(hwnd, (LPSTR) &title, 255);
-		// FormatDebugString("Target: exe: %s, title: %s, pid: %d\n", (LPCSTR) name, title, pid);
+		TCHAR title[256];
+		::GetWindowText(hwnd, (LPTSTR) &title, 255);
+		// FormatDebugString(_T("Target: exe: %s, title: %s, pid: %d\n"), (LPCTSTR) name, title, pid);
 
 		CString str;
-		str.Format("Target: exe: %s, title: %s, pid: %d\r\n", (LPCSTR)name, title, pid);
+		str.Format(_T("Target: exe: %s, title: %s, pid: %d\r\n"), (LPCTSTR) name, title, pid);
 
 		((CString*) lParam)[0] += str;
 		((HWND*) lParam)[1] = hwnd;
