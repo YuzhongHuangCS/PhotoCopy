@@ -30,9 +30,18 @@ void CPhotoCopyDlg::DoDataExchange(CDataExchange* pDX)
 
 BEGIN_MESSAGE_MAP(CPhotoCopyDlg, CDialogEx)
 	ON_WM_PAINT()
+	ON_WM_HOTKEY()
 	ON_WM_QUERYDRAGICON()
 END_MESSAGE_MAP()
 
+void FormatDebugString(char* fmt, ...) {
+	va_list argp;
+	va_start(argp, fmt);
+	char dbg_out[4096];
+	vsprintf_s(dbg_out, fmt, argp);
+	va_end(argp);
+	OutputDebugStringA(dbg_out);
+}
 
 // CPhotoCopyDlg message handlers
 
@@ -46,6 +55,8 @@ BOOL CPhotoCopyDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
+	bool status = RegisterHotKey(m_hWnd, MY_HOTKEY_ID, MOD_CONTROL, KEYS_RIGHT);
+	FormatDebugString("Hotkey Register %d\n", status);
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -79,6 +90,85 @@ void CPhotoCopyDlg::OnPaint()
 	}
 }
 
+
+void CPhotoCopyDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2) {
+	if (nHotKeyId == MY_HOTKEY_ID) {
+		SendHotKeys();
+	}
+}
+
+void CPhotoCopyDlg::SendHotKeys() {
+	keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
+	keybd_event(KEYS_C, 0, KEYEVENTF_KEYDOWN, 0);
+	keybd_event(KEYS_C, 0, KEYEVENTF_KEYUP, 0);
+	keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);
+
+	HWND current = ::GetForegroundWindow();
+	LogCurrentWindow(current);
+
+	HWND explorer = FindExplorer();
+	::SetForegroundWindow(explorer);
+	Sleep(100);
+
+	keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
+	keybd_event(KEYS_V, 0, KEYEVENTF_KEYDOWN, 0);
+	keybd_event(KEYS_V, 0, KEYEVENTF_KEYUP, 0);
+	keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYUP, 0);
+	Sleep(100);
+
+	::SetForegroundWindow(current);
+}
+
+void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
+	char title[256];
+	::GetWindowTextA(current, (LPSTR)&title, 255);
+
+	DWORD pid = 0;
+	GetWindowThreadProcessId(current, &pid);
+
+	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+	char name[256];
+	DWORD len = 255;
+	QueryFullProcessImageNameA(handle, 0, name, &len);
+	CloseHandle(handle);
+	char* exe = strrchr(name, '\\') + 1;
+
+	FormatDebugString("Source: exe: %s, title: %s, pid: %d\n", exe, title, pid);
+}
+
+BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
+	if (!::IsWindowVisible(hwnd) || ::GetWindowTextLength(hwnd) == 0) {
+		return TRUE;
+	}
+
+	DWORD pid = 0;
+	GetWindowThreadProcessId(hwnd, &pid);
+
+	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+	char name[256];
+	DWORD len = 255;
+	QueryFullProcessImageNameA(handle, 0, name, &len);
+	CloseHandle(handle);
+	char* exe = strrchr(name, '\\') + 1;
+
+	if (strcmp(exe, "explorer.exe") == 0) {
+		((HWND*)lParam)[0] = hwnd;
+
+		char title[256];
+		::GetWindowTextA(hwnd, (LPSTR)&title, 255);
+		FormatDebugString("Target: exe: %s, title: %s, pid: %d\n", exe, title, pid);
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+HWND CPhotoCopyDlg::FindExplorer() {
+	HWND ret[1];
+	::EnumDesktopWindows(NULL, EnumCallback, (LPARAM) ret);
+	return ret[0];
+}
+
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
 HCURSOR CPhotoCopyDlg::OnQueryDragIcon()
@@ -86,3 +176,15 @@ HCURSOR CPhotoCopyDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+void CPhotoCopyDlg::PostNcDestroy() {
+	CDialogEx::PostNcDestroy();
+	delete this;
+}
+
+void CPhotoCopyDlg::OnOk() {
+	DestroyWindow();
+}
+
+void CPhotoCopyDlg::OnCancel() {
+	DestroyWindow();
+}

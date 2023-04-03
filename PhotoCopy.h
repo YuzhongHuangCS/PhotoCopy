@@ -27,6 +27,8 @@ public:
 // Implementation
 
 	DECLARE_MESSAGE_MAP()
+private:
+	CDialogEx* m_pDialog;
 };
 
 extern CPhotoCopyApp theApp;
