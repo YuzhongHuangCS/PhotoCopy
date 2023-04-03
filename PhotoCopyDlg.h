@@ -30,7 +30,6 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg void OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2);
 	afx_msg HCURSOR OnQueryDragIcon();
-	void PostNcDestroy();
 	void OnOk();
 	void OnCancel();
 	DECLARE_MESSAGE_MAP()
@@ -38,7 +37,6 @@ protected:
 private:
 	const UINT MY_HOTKEY_ID = 1;
 	const UINT KEYEVENTF_KEYDOWN = 0x0000;
-	const UINT KEYS_RIGHT = 39;
 	const UINT KEYS_C = 0x43;
 	const UINT KEYS_V = 0x56;
 

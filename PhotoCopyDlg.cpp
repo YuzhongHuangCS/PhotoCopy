@@ -14,9 +14,6 @@
 
 
 // CPhotoCopyDlg dialog
-
-
-
 CPhotoCopyDlg::CPhotoCopyDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_PHOTOCOPY_DIALOG, pParent) {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -63,7 +60,7 @@ BOOL CPhotoCopyDlg::OnInitDialog() {
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-	bool status = RegisterHotKey(m_hWnd, MY_HOTKEY_ID, MOD_CONTROL, KEYS_RIGHT);
+	bool status = RegisterHotKey(m_hWnd, MY_HOTKEY_ID, MOD_CONTROL, VK_RIGHT);
 	// FormatDebugString(_T("Hotkey Register status: %d\n"), status);
 
 	CString str;
@@ -147,7 +144,7 @@ void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
 
 static const CString EXPLORER = CString(_T("explorer.exe"));
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
-	if (!::IsWindowVisible(hwnd) || ::GetWindowTextLength(hwnd) == 0) {
+	if (!IsWindowVisible(hwnd) || GetWindowTextLength(hwnd) == 0) {
 		return TRUE;
 	}
 
@@ -176,7 +173,7 @@ HWND CPhotoCopyDlg::FindExplorer() {
 
 	// Hack: sizeof(HWND) == sizeof(CString), [0] is CString, [1] is HWND
 	memcpy(ret, &LOG, sizeof(CString));
-	::EnumDesktopWindows(NULL, EnumCallback, (LPARAM) ret);
+	EnumDesktopWindows(NULL, EnumCallback, (LPARAM) ret);
 	memcpy(&LOG, ret, sizeof(CString));
 	SetDlgItemText(IDC_EDIT1, LOG);
 
@@ -187,11 +184,6 @@ HWND CPhotoCopyDlg::FindExplorer() {
 //  the minimized window.
 HCURSOR CPhotoCopyDlg::OnQueryDragIcon() {
 	return static_cast<HCURSOR>(m_hIcon);
-}
-
-void CPhotoCopyDlg::PostNcDestroy() {
-	CDialogEx::PostNcDestroy();
-	delete this;
 }
 
 void CPhotoCopyDlg::OnOk() {

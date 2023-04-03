@@ -41,3 +41,10 @@ BOOL CPhotoCopyApp::InitInstance() {
 
 	return TRUE;
 }
+
+BOOL CPhotoCopyApp::ExitInstance() {
+	CWinApp::ExitInstance();
+	delete m_pDialog;
+
+	return TRUE;
+}

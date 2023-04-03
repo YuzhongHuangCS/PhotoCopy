@@ -23,6 +23,7 @@ public:
 // Overrides
 public:
 	virtual BOOL InitInstance();
+	virtual BOOL ExitInstance();
 
 // Implementation
 
