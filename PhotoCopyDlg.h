@@ -41,7 +41,9 @@ private:
 	const UINT KEYS_RIGHT = 39;
 	const UINT KEYS_C = 0x43;
 	const UINT KEYS_V = 0x56;
+
 	void SendHotKeys();
 	void LogCurrentWindow(HWND current);
 	HWND FindExplorer();
+
 };

@@ -18,13 +18,11 @@
 
 
 CPhotoCopyDlg::CPhotoCopyDlg(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_PHOTOCOPY_DIALOG, pParent)
-{
+	: CDialogEx(IDD_PHOTOCOPY_DIALOG, pParent) {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
-void CPhotoCopyDlg::DoDataExchange(CDataExchange* pDX)
-{
+void CPhotoCopyDlg::DoDataExchange(CDataExchange* pDX) {
 	CDialogEx::DoDataExchange(pDX);
 }
 
@@ -43,10 +41,20 @@ void FormatDebugString(char* fmt, ...) {
 	OutputDebugStringA(dbg_out);
 }
 
+CStringA PIDtoProcessName(DWORD pid) {
+	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+	char name[256];
+	DWORD len = 255;
+	QueryFullProcessImageNameA(handle, 0, name, &len);
+	CloseHandle(handle);
+	char* exe = strrchr(name, '\\') + 1;
+
+	return CStringA(exe);
+}
+
 // CPhotoCopyDlg message handlers
 
-BOOL CPhotoCopyDlg::OnInitDialog()
-{
+BOOL CPhotoCopyDlg::OnInitDialog() {
 	CDialogEx::OnInitDialog();
 
 	// Set the icon for this dialog.  The framework does this automatically
@@ -65,10 +73,8 @@ BOOL CPhotoCopyDlg::OnInitDialog()
 //  to draw the icon.  For MFC applications using the document/view model,
 //  this is automatically done for you by the framework.
 
-void CPhotoCopyDlg::OnPaint()
-{
-	if (IsIconic())
-	{
+void CPhotoCopyDlg::OnPaint() {
+	if (IsIconic()) {
 		CPaintDC dc(this); // device context for painting
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
@@ -83,9 +89,7 @@ void CPhotoCopyDlg::OnPaint()
 
 		// Draw the icon
 		dc.DrawIcon(x, y, m_hIcon);
-	}
-	else
-	{
+	} else {
 		CDialogEx::OnPaint();
 	}
 }
@@ -121,21 +125,17 @@ void CPhotoCopyDlg::SendHotKeys() {
 
 void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
 	char title[256];
-	::GetWindowTextA(current, (LPSTR)&title, 255);
+	::GetWindowTextA(current, (LPSTR) &title, 255);
 
 	DWORD pid = 0;
 	GetWindowThreadProcessId(current, &pid);
 
-	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-	char name[256];
-	DWORD len = 255;
-	QueryFullProcessImageNameA(handle, 0, name, &len);
-	CloseHandle(handle);
-	char* exe = strrchr(name, '\\') + 1;
+	CStringA name = PIDtoProcessName(pid);
 
-	FormatDebugString("Source: exe: %s, title: %s, pid: %d\n", exe, title, pid);
+	FormatDebugString("Source: exe: %s, title: %s, pid: %d\n", (LPCSTR) name, title, pid);
 }
 
+static const CStringA EXPLORER = CStringA("explorer.exe");
 BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 	if (!::IsWindowVisible(hwnd) || ::GetWindowTextLength(hwnd) == 0) {
 		return TRUE;
@@ -144,19 +144,13 @@ BOOL CALLBACK EnumCallback(HWND hwnd, LPARAM lParam) {
 	DWORD pid = 0;
 	GetWindowThreadProcessId(hwnd, &pid);
 
-	HANDLE handle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
-	char name[256];
-	DWORD len = 255;
-	QueryFullProcessImageNameA(handle, 0, name, &len);
-	CloseHandle(handle);
-	char* exe = strrchr(name, '\\') + 1;
-
-	if (strcmp(exe, "explorer.exe") == 0) {
-		((HWND*)lParam)[0] = hwnd;
+	CStringA name = PIDtoProcessName(pid);
+	if (name == EXPLORER) {
+		((HWND*) lParam)[0] = hwnd;
 
 		char title[256];
-		::GetWindowTextA(hwnd, (LPSTR)&title, 255);
-		FormatDebugString("Target: exe: %s, title: %s, pid: %d\n", exe, title, pid);
+		::GetWindowTextA(hwnd, (LPSTR) &title, 255);
+		FormatDebugString("Target: exe: %s, title: %s, pid: %d\n", (LPCSTR) name, title, pid);
 		return FALSE;
 	}
 
@@ -171,8 +165,7 @@ HWND CPhotoCopyDlg::FindExplorer() {
 
 // The system calls this function to obtain the cursor to display while the user drags
 //  the minimized window.
-HCURSOR CPhotoCopyDlg::OnQueryDragIcon()
-{
+HCURSOR CPhotoCopyDlg::OnQueryDragIcon() {
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
