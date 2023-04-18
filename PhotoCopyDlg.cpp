@@ -123,6 +123,9 @@ void CPhotoCopyDlg::SendHotKeys() {
 	Sleep(100);
 
 	::SetForegroundWindow(current);
+	Sleep(100);
+	keybd_event(VK_RIGHT, 0, KEYEVENTF_KEYDOWN, 0);
+	keybd_event(VK_RIGHT, 0, KEYEVENTF_KEYUP, 0);
 }
 
 void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
