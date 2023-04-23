@@ -12,6 +12,9 @@
 #define new DEBUG_NEW
 #endif
 
+#define KEYEVENTF_KEYDOWN 0x0000
+#define KEYS_C 0x43
+#define KEYS_V 0x56
 
 // CPhotoCopyDlg dialog
 CPhotoCopyDlg::CPhotoCopyDlg(CWnd* pParent /*=nullptr*/)
@@ -60,11 +63,12 @@ BOOL CPhotoCopyDlg::OnInitDialog() {
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-	bool status = RegisterHotKey(m_hWnd, MY_HOTKEY_ID, MOD_CONTROL, VK_RIGHT);
-	// FormatDebugString(_T("Hotkey Register status: %d\n"), status);
+	bool status_right = RegisterHotKey(m_hWnd, VK_RIGHT, MOD_CONTROL, VK_RIGHT);
+	bool status_left = RegisterHotKey(m_hWnd, VK_LEFT, MOD_CONTROL, VK_LEFT);
+	// FormatDebugString(_T("Hotkey Register status: %d\n"), status_right);
 
 	CString str;
-	str.Format(_T("Hotkey Register status: %d\r\n"), status);
+	str.Format(_T("Hotkey Register status: right=%d, left=%d\r\n"), status_right, status_left);
 	LOG += str;
 	SetDlgItemText(IDC_EDIT1, LOG);
 
@@ -98,12 +102,10 @@ void CPhotoCopyDlg::OnPaint() {
 
 
 void CPhotoCopyDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2) {
-	if (nHotKeyId == MY_HOTKEY_ID) {
-		SendHotKeys();
-	}
+	SendHotKeys(nHotKeyId);
 }
 
-void CPhotoCopyDlg::SendHotKeys() {
+void CPhotoCopyDlg::SendHotKeys(UINT key) {
 	keybd_event(VK_LCONTROL, 0, KEYEVENTF_KEYDOWN, 0);
 	keybd_event(KEYS_C, 0, KEYEVENTF_KEYDOWN, 0);
 	keybd_event(KEYS_C, 0, KEYEVENTF_KEYUP, 0);
@@ -124,8 +126,8 @@ void CPhotoCopyDlg::SendHotKeys() {
 
 	::SetForegroundWindow(current);
 	Sleep(100);
-	keybd_event(VK_RIGHT, 0, KEYEVENTF_KEYDOWN, 0);
-	keybd_event(VK_RIGHT, 0, KEYEVENTF_KEYUP, 0);
+	keybd_event(key, 0, KEYEVENTF_KEYDOWN, 0);
+	keybd_event(key, 0, KEYEVENTF_KEYUP, 0);
 }
 
 void CPhotoCopyDlg::LogCurrentWindow(HWND current) {
@@ -190,6 +192,7 @@ HCURSOR CPhotoCopyDlg::OnQueryDragIcon() {
 }
 
 void CPhotoCopyDlg::OnCancel() {
-	UnregisterHotKey(m_hWnd, MY_HOTKEY_ID);
+	UnregisterHotKey(m_hWnd, VK_RIGHT);
+	UnregisterHotKey(m_hWnd, VK_LEFT);
 	DestroyWindow();
 }

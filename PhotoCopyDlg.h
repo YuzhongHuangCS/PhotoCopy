@@ -34,12 +34,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
-	const UINT MY_HOTKEY_ID = 1;
-	const UINT KEYEVENTF_KEYDOWN = 0x0000;
-	const UINT KEYS_C = 0x43;
-	const UINT KEYS_V = 0x56;
-
-	void SendHotKeys();
+	void SendHotKeys(UINT key);
 	void LogCurrentWindow(HWND current);
 	HWND FindExplorer();
 
