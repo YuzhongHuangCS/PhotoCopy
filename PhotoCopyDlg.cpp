@@ -65,7 +65,7 @@ BOOL CPhotoCopyDlg::OnInitDialog() {
 	// TODO: Add extra initialization here
 	bool status_right = RegisterHotKey(m_hWnd, VK_RIGHT, MOD_CONTROL, VK_RIGHT);
 	bool status_left = RegisterHotKey(m_hWnd, VK_LEFT, MOD_CONTROL, VK_LEFT);
-	// FormatDebugString(_T("Hotkey Register status: %d\n"), status_right);
+	// FormatDebugString(_T("Hotkey Register status: right=%d, left=%d\n"), status_right, status_left);
 
 	CString str;
 	str.Format(_T("Hotkey Register status: right=%d, left=%d\r\n"), status_right, status_left);
