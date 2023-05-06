@@ -63,14 +63,18 @@ BOOL CPhotoCopyDlg::OnInitDialog() {
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	// TODO: Add extra initialization here
-	bool status_right = RegisterHotKey(m_hWnd, VK_RIGHT, MOD_CONTROL, VK_RIGHT);
-	bool status_left = RegisterHotKey(m_hWnd, VK_LEFT, MOD_CONTROL, VK_LEFT);
-	// FormatDebugString(_T("Hotkey Register status: right=%d, left=%d\n"), status_right, status_left);
+	bool status_ctrl_right = RegisterHotKey(m_hWnd, MOD_CONTROL + VK_RIGHT, MOD_CONTROL, VK_RIGHT);
+	bool status_ctrl_left = RegisterHotKey(m_hWnd, MOD_CONTROL + VK_LEFT, MOD_CONTROL, VK_LEFT);
 
 	CString str;
-	str.Format(_T("Hotkey Register status: right=%d, left=%d\r\n"), status_right, status_left);
+	str.Format(_T("Hotkey Register status: ctrl_right=%d, ctrl_left=%d\r\n"), status_ctrl_right, status_ctrl_left);
 	LOG += str;
 	SetDlgItemText(IDC_EDIT1, LOG);
+
+	if (!(status_ctrl_right && status_ctrl_left)) {
+		MessageBox(str, _T("Another instance is already running"), MB_ICONERROR);
+		PostQuitMessage(EXIT_FAILURE);
+	}
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -102,7 +106,7 @@ void CPhotoCopyDlg::OnPaint() {
 
 
 void CPhotoCopyDlg::OnHotKey(UINT nHotKeyId, UINT nKey1, UINT nKey2) {
-	SendHotKeys(nHotKeyId);
+	SendHotKeys(nKey2);
 }
 
 void CPhotoCopyDlg::SendHotKeys(UINT key) {
@@ -192,7 +196,7 @@ HCURSOR CPhotoCopyDlg::OnQueryDragIcon() {
 }
 
 void CPhotoCopyDlg::OnCancel() {
-	UnregisterHotKey(m_hWnd, VK_RIGHT);
-	UnregisterHotKey(m_hWnd, VK_LEFT);
+	UnregisterHotKey(m_hWnd, MOD_CONTROL + VK_RIGHT);
+	UnregisterHotKey(m_hWnd, MOD_CONTROL + VK_LEFT);
 	DestroyWindow();
 }
